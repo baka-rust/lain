@@ -33,11 +33,12 @@ the lain language
 	instructions := "++*-/"
 	
 	run := ( ins i:0 total:0 ) ->
-		new_total := match ins[i] :
-			"+" -> total + 1
-			"-" -> total - 1
-			"*"	-> total * 2
-			"/"	-> total / 2
+		new_total := match ins[i] {
+			"+" : total + 1
+			"-" : total - 1
+			"*"	: total * 2
+			"/"	: total / 2
+		}
 		result := run ins i+1 new_total
 	
 	run instructions
@@ -49,7 +50,7 @@ the lain language
 	(...) -> ... // create a lambda statement
 	-> ... // create a lambda with no args
 	[...] // apply a get on a structure
-	: // create a table with the following keys
+	{ .. : .. } // create a table with the key value pair around the colon
 ```
 
 
