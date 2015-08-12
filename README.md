@@ -67,8 +67,10 @@ atom
 == // equivalent
 != // not equivalent
 ! // not arg0
-|| // bitwise or of args
-&& // bitwise and of args
+|| // boolean or of args
+&& // boolean and of args
+| // bitwise or of args
+& // bitwise and of args
 ```
 
 
