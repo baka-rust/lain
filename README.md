@@ -4,9 +4,10 @@ the lain language
 ## about
 `lain` is being developed with a few precepts in mind:
 * lambda is law - all concepts resolve to `atoms` (fundamental types)
-* side-effects are bad, functional programming is good (although shouldn't be enforced)
+* side-effects are bad, functional programming is good
 * all complex data-structures can be represented by less complex ones
 * grammar should be driven by design, not the other way around
+* advanced syntax should come from abstraction and sugar, which should be implemented in the language itself
 * package structure should be obvious, and enforce good design/paradigms -- use "first require concatenation"
 
 ## proposed design:
@@ -18,67 +19,38 @@ the lain language
 * `bool` - a logical boolean
 * `char` - a byte (character)
 * `fn` - a lambda (function)
-* `list` - serially accessible memory 
-* `table` - a string -> value store of arbitrary types 
+* `list` - serially accessible memory
+* `table` - a string -> value store of arbitrary types
 
 ### extended types
 * `struct` - syntactic sugar around `tables`, resolves field access into key access
 * `string` - a null-terminated array of `chars`, with syntactic sugar
 * `package` - syntactic sugar around `structs` to make them usable as namespace'd packages
 
+## s-lain
+lain has an intermediate representation `s-lain`, centered around s-expressions, which represents a lain program's AST.
+s-lain forms the fundamental basis for lain's overall design, and all of lain's syntax is centered around abstractions of s-lain.
+Developing while using s-lain as a basis enables rapid syntax changes while keeping in line with lain's core philosophy.
 
+### statements
+s-lain has several basic statements. each statement always resolves to an atom, or "typed element".
+```lisp
+atom
+( )
+( block statements... ) // execute statements in order, return result of last
+( invoke block args... ) // function invocation
 
-### limited interpreter in lain
-```
-	instructions := "++*-/"
-	
-	run := ( ins i:0 total:0 ) ->
-		new_total := match ins[i] {
-			"+" : total + 1
-			"-" : total - 1
-			"*"	: total * 2
-			"/"	: total / 2
-		}
-		result := run ins i+1 new_total
-	
-	run instructions
-	
-```
+( let id block ) // variable assignment
+( lambda ( args.. ) block ) // function definition
+( type block ) // returns the type of the block
+( {operator} args... ) // invokes operator
+( {atom} args... ) // returns atom of type t from args
 
-### syntactic sugar
-```
-	(...) -> ... // create a lambda statement
-	-> ... // create a lambda with no args
-	[...] // apply a get on a structure
-	{ .. : .. } // create a table with the key value pair around the colon
-```
+( match ( condition ) block ( condition ) block ... ) // final condition should match true to act as an "else"
 
-
-### built-in statements
-```
-( ) // empty
-( statements... ) // block (last statement is return)
-( id args... ) // function invocation
-( type args... ) // atom creation
-( let type id block<type> ) // definition
-( let id block<type> ) // assignment / implicitly typed definition
-( if block<bool> block ) // conditional
-( if block<bool> block else block ) // else conditional
-( lambda id ( args... ) block ) // function definition
-( get id arg ) // get element from atom structure (list, table)
-( set id arg ) // set element in atom structure (list, table)
-( len id ) // returns the lenght of an atom structure
-( id ) // return value of id (explicit return), equivalent to just `id`, but visually fitting
-( default type id block ) // special type of arg, allows a default to be set 
-```
-
-### extended statements in `common` package
-```
-( append id<list> ) // append to a list
-( pop id<list> ) // remove and return last element in a list
-( expand uint value ) // create a list of uint size with value inside
-( range uint uint id ) // return range of list id starting at arg0 and ending at arg1
-( match string map ) // matches string to lambda in map
+( len id ) // length of a structured atom
+( get id arg ) // get value from a structured atom
+( set id arg ) // set value in a structured atom
 ```
 
 ### operators
@@ -100,4 +72,67 @@ the lain language
 ```
 
 
+### match statements
+`match` statements form the fundamental basis for flow control in s-lain. In true lain, they will be abstracted to function in a similar aspect to haskell's (and other functional languages') pattern matching.
+```lisp
+( block
+    ( let input 5 )
+    ( let output
+        ( match
+            ( == ( type input ) int ) "input was an int"
+            ( == ( type input ) uint ) "input was an unsigned int"
+            true "input was not an int or an unsigned int"
+        )
+    )
+)
+```
 
+This block will return the string `"input was an int"`.
+
+
+## explicit lain and sugar
+Explicit lain is the language after abstraction. Syntax is up in the air, but the general philosophy is that each segment of basic syntax relates back to a statement in s-lain, and that additional levels of abstraction will be layered on top.
+
+
+### match example in explicit lain
+Taking our same match example:
+```javascript
+	{
+		input := 5;
+		output := match(
+			type input == int : "input was an int",
+			type input == uint : "input was an unsigned int",
+			true : "input was not an int or an unsigned int"
+		);
+	}
+```
+
+And with sugar (abstraction):
+```javascript
+	{
+		input := 5
+		output (input) =>
+			<int> : "input was an int",
+			<uint> : "input was an unsigned int",
+			_ : "input was not an int or an unsigned int"
+	}
+```
+
+And with a lambda:
+```javascript
+	check := (input) -> (input) =>
+		<int> : "input was an int",
+		<uint> : "input was an unsigned int",
+		_ : "input was not an int or an unsigned int"
+	check 5
+```
+
+Which can again be abstracted to:
+```javascript
+	output := (input) ==>  
+		<int> : "input was an int",
+		<uint> : "input was an unsigned int",
+		_ : "input was not an int or an unsigned int"
+	check 5
+```
+And now we have a function with haskell style matching, just by layering our abstractions out.
