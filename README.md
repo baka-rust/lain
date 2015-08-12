@@ -131,7 +131,7 @@ And with a lambda:
 
 Which can again be abstracted to:
 ```javascript
-	output := (input) ==>  
+	check := (input) ==>  
 		<int> : "input was an int",
 		<uint> : "input was an unsigned int",
 		_ : "input was not an int or an unsigned int"
