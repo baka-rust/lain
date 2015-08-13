@@ -27,6 +27,26 @@ the lain language
 * `string` - a null-terminated array of `chars`, with syntactic sugar
 * `package` - syntactic sugar around `structs` to make them usable as namespace'd packages
 
+## current grammar
+```javascript
+// assignment
+var := 5;
+
+// lambda/function defn
+a_function := () -> {
+	"I am a string that will be returned!";
+};
+a_function(); // returns "I am a string that will be returned!"
+
+test_bool := (input) -> => {
+	true : "hello, world",
+	false : "oh no"
+};
+
+test_bool(true); // returns "hello, world"
+```
+
+
 ## s-lain
 lain has an intermediate representation `s-lain`, centered around s-expressions, which represents a lain program's AST.
 s-lain forms the fundamental basis for lain's overall design, and all of lain's syntax is centered around abstractions of s-lain.
