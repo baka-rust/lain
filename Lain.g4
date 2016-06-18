@@ -14,13 +14,16 @@ program			: statement* EOF ;
 
 statement		: if_statement
 				| for_loop
+				| while_loop
 				| expression ';'
-				| 'return' expression ';'
+				| keyword expression ';'
 				;
 
 if_statement	: 'if' expression block ('else if' expression block)* ('else' block)? ;
 
-for_loop		: 'for' (definition | ID) 'in' expression (expression ';' | block) ;
+for_loop		: 'for' (definition | name) 'in' expression (expression ';' | block) ;
+
+while_loop		: 'while' expression (expression ';' | block) ;
 
 expression		: definition
 				| assignment
@@ -28,24 +31,25 @@ expression		: definition
 				| invocation
 				| lambda
 				| atom
-				| ID
+				| name
 				| expression operand expression
+				| expression bool_operand expression
 				| unary_operand expression
+				| expression trail_operand
 				| '(' expression ')'
 				| table_definition
-				| meta_definition
 				| table_access
 				;
 
-definition		: type ID ;
+definition		: type name ;
 
-assignment		: ID ':=' expression 
+assignment		: name ':=' expression 
 				| table_access ':=' expression
 				;
 
-definition_assignment : type ID ':=' expression ;
+definition_assignment : type name ':=' expression ;
 
-invocation		: ID '(' expression_list? ')' ;
+invocation		: name '(' expression_list? ')' ;
 
 lambda			: '(' argument_list? ')' '->' ( '(' type_list ')' | type )? (block | ':' expression) ;
 
@@ -59,13 +63,7 @@ expression_list	: expression (',' expression)* ;
 
 argument_list	: definition (',' definition)* ;
 
-meta_definition : '{' meta_entry_list* '}' ;
-
-meta_entry_list	: (meta_entry | table_entry) (',' (meta_entry | table_entry))? ;
-
-meta_entry		: type ID ;
-
-table_access	: ID '[' STRING ']' ;
+table_access	: name '[' STRING ']' ;
 
 type_list		: type (',' type)* ;
 
@@ -73,10 +71,25 @@ block			: '{' statement* '}' ;
 
 operand			: '*' | '/' | '+' | '-' ;
 
-unary_operand	: '!' | '-' ;
+bool_operand	: '||' | '&&' | '>' | '<' | '>=' | '<=' | '!=' | '==' ;
 
-type			: 'int' | 'uint' | 'float' | 'bool' | 'byte' | 'fn' 
-				| 'string' | 'list' | 'table' | 'meta' | ID
+unary_operand	: '&' | '!' | '-' ;
+
+trail_operand	: '++' | '--' ;
+
+type			: '*' type
+				|  'int' | 'uint' | 'float' | 'bool' | 'byte' | 'fn' 
+				| 'string' | 'list' | 'table' | 'meta' | name
+				;
+
+keyword			: 'return'
+				| 'include'
+				;
+
+name			: ID
+				| name '.' name
+				| name ':' name
+				| name '->' name
 				;
 
 atom			: INT
