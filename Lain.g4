@@ -5,57 +5,82 @@ ID: [a-zA-Z_][a-zA-Z_0-9]* ;
 INT: [0-9]+ ;
 STRING: '"' ~["\\\r\n]+ '"' ;
 BOOL: ('true' | 'false') ;
-COMMENT:  '//' ~( '\r' | '\n' )* -> skip ;
-WS: ( '\t' | ' ' | '\r' | '\n'| '\u000C' )+ -> skip ;
+COMMENT: '//' ~( '\r' | '\n' )* -> skip ;
+WS: ( '\t' | ' ' | '\r' | '\n' | '\u000C' )+ -> skip ;
+NULL: 'null' ;
 
 // non-terminals
-program		:	statements EOF
-			;
+program			: statement* EOF ;
 
-statements	:	fstatement statements
-			|
-			;
+statement		: if_statement
+				| for_loop
+				| expression ';'
+				| 'return' expression ';'
+				;
 
-// decides if a statement needs a semicolon
-fstatement	:	statement ';'
-			|	block
-			|	match
-			|	assignment ';'	// here and not in statement, as it can only be on the far left
-			;
+if_statement	: 'if' expression block ('else if' expression block)* ('else' block)? ;
 
-block		:	'{' statements '}'
-			;
+for_loop		: 'for' (definition | ID) 'in' expression (expression ';' | block) ;
 
-assignment	:	ID ':=' statement
-			;
+expression		: definition
+				| assignment
+				| definition_assignment
+				| invocation
+				| lambda
+				| atom
+				| ID
+				| expression operand expression
+				| unary_operand expression
+				| '(' expression ')'
+				| table_definition
+				| meta_definition
+				| table_access
+				;
 
-statement	:	atom
-			|	ID
-			|	statement '(' fargs ')' // invocation, not own non-terminal because explicit left-recursion is required
-			|	lambda
-			;
+definition		: type ID ;
 
-// function (invocation) arguments
-fargs		:	statement (',' statement)*
-			|
-			;
+assignment		: ID ':=' expression 
+				| table_access ':=' expression
+				;
 
-lambda		:	'(' largs ')' '->' fstatement
-			;
+definition_assignment : type ID ':=' expression ;
 
-// lambda (function defn) arguments
-largs		:	ID (',' ID)*
-			|
-			;
+invocation		: ID '(' expression_list? ')' ;
 
-// match statement
-match		:	'=>' '{' match_rule (',' match_rule)+ '}'
-			;
+lambda			: '(' argument_list? ')' '->' ( '(' type_list ')' | type )? (block | ':' expression) ;
 
-match_rule	:	statement ':' statement
-			;
+table_definition : '{' table_entry_list* '}' ;
 
-atom		:	INT
-			|	STRING
-			|	BOOL
-			;
+table_entry_list : table_entry (',' table_entry)* ;
+
+table_entry		: type ID ':' expression ;
+
+expression_list	: expression (',' expression)* ;
+
+argument_list	: definition (',' definition)* ;
+
+meta_definition : '{' meta_entry_list* '}' ;
+
+meta_entry_list	: (meta_entry | table_entry) (',' (meta_entry | table_entry))? ;
+
+meta_entry		: type ID ;
+
+table_access	: ID '[' STRING ']' ;
+
+type_list		: type (',' type)* ;
+
+block			: '{' statement* '}' ;
+
+operand			: '*' | '/' | '+' | '-' ;
+
+unary_operand	: '!' | '-' ;
+
+type			: 'int' | 'uint' | 'float' | 'bool' | 'byte' | 'fn' 
+				| 'string' | 'list' | 'table' | 'meta' | ID
+				;
+
+atom			: INT
+				| STRING
+				| BOOL
+				| NULL
+				;
