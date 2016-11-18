@@ -27,5 +27,6 @@
 *.out
 *.app
 
-/build
+v1_antlr/build
+v2_antlr/build
 *.swp

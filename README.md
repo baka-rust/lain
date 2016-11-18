@@ -1,6 +1,8 @@
 # lain
 the lain language
 
+note: this is under a lot of construction
+
 ## about
 `lain` is being developed with a few precepts in mind:
 * lambda is law - all concepts resolve to `atoms` (fundamental types)
@@ -37,4 +39,3 @@ fn a_function := () -> string {
 };
 a_function(); // returns "I am a string that will be returned!"
 ```
-
