@@ -32,9 +32,12 @@ expression		: definition
 				| lambda
 				| atom
 				| name
-				| expression operand expression
-				| expression bool_operand expression
 				| unary_operand expression
+				| expression operand_mul_div_mod expression
+				| expression operand_add_sub expression
+				| expression operand_compare expression
+				| expression operand_and expression
+				| expression operand_or expression
 				| expression trail_operand
 				| '(' expression ')'
 				| table_definition
@@ -43,7 +46,7 @@ expression		: definition
 
 definition		: type name ;
 
-assignment		: name ':=' expression 
+assignment		: name ':=' expression
 				| table_access ':=' expression
 				;
 
@@ -69,16 +72,22 @@ type_list		: type (',' type)* ;
 
 block			: '{' statement* '}' ;
 
-operand			: '*' | '/' | '+' | '-' ;
+operand_mul_div_mod			: '*' | '/' | '%';
 
-bool_operand	: '||' | '&&' | '>' | '<' | '>=' | '<=' | '!=' | '==' ;
+operand_add_sub						: '+' | '-';
+
+operand_compare 					: '>' | '<' | '>=' | '<=' | '!=' | '==';
+
+operand_and								: '&&';
+
+operand_or								: '||';
 
 unary_operand	: '&' | '!' | '-' ;
 
 trail_operand	: '++' | '--' ;
 
 type			: '*' type
-				|  'int' | 'uint' | 'float' | 'bool' | 'byte' | 'fn' 
+				|  'int' | 'uint' | 'float' | 'bool' | 'byte' | 'fn'
 				| 'string' | 'list' | 'table' | 'meta' | name
 				;
 
